@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="rendering">
+      <UniqueIdentifier>{c60392fd-4dcb-4ef2-9038-49ea5de652e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{4e4e6981-26b5-4eb6-a552-06b7ec72acc5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\framework.cpp">
+      <Filter>rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer.cpp">
+      <Filter>rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderFont.cpp">
+      <Filter>rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderLines.cpp">
+      <Filter>rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\physicsTestApp.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\fontData.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\app.h" />
+    <ClInclude Include="include\framework.h" />
+    <ClInclude Include="include\utils.h" />
+    <ClInclude Include="include\physicsTestApp.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="include\renderer.h">
+      <Filter>rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\renderFont.h">
+      <Filter>rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\renderLines.h">
+      <Filter>rendering</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
