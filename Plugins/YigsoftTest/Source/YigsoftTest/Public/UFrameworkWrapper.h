@@ -19,11 +19,14 @@ protected:
     test::App* FrameworkApp;
 
 public:
-    // UFUNCTION to expose your framework's functionality to Blueprints
+    // NEW: Expose Color to the Editor
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation|Visuals")
+    FColor DebugDrawColor = FColor::White; // Default to White for visibility
+
+    // UFUNCTIONs... (existing code)
     UFUNCTION(BlueprintCallable, Category = "Framework Functions")
     void AddFrameworkBody(int ShapeType, float X, float Y, float R);
 
-    // NEW UFUNCTION: Handles key press from Unreal and passes it to the simulation
     UFUNCTION(BlueprintCallable, Category = "Framework Functions")
     void HandleKeyInput(int32 KeyCode);
 

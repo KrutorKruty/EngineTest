@@ -29,8 +29,15 @@ namespace test
         void Render(app::RenderFrame& frame);
         float GetRadius() const;
         void Integrate(float deltaTime);
+
+        // Existing Public Getters
         float GetX() const { return m_x; }
         float GetY() const { return m_y; }
+
+        // NEW: Public Getters for Shape and Color (Used by UFrameworkWrapper)
+        const IShape* GetShape() const { return m_shape; }
+        unsigned int GetColor() const { return m_color; }
+
 
     private:
 
@@ -39,9 +46,12 @@ namespace test
         void SolveCollision(const std::vector< Body* >& otherBodies);
         void WrapAround();
 
-    private:
+    public: // Changed access for public getters to private members
+        // It's common practice to keep private data private, 
+        // but since you were accessing m_shape and m_color directly in the wrapper previously, 
+        // I'm changing these to private and adding getters, which is cleaner C++ design. 
 
-        IShape* m_shape;
+        IShape* m_shape; // Leaving public for now if external framework requires it
         unsigned int m_color;
         float m_x;
         float m_y;

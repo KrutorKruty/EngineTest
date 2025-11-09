@@ -1,5 +1,3 @@
-// D:\Engine test\EngineTest\Plugins\YigsoftTest\Source\YigsoftTest\Public\testShape.h
-
 #pragma once
 
 // Keep the includes for the framework types needed by the declarations
@@ -36,11 +34,15 @@ namespace test
 		/// get assigned type of this shape
 		virtual int GetType() const = 0;
 
+		// -----------------------------------------------------------------
+		// FIX IMPLEMENTED: Moved to public access
+		// This function is needed by UFrameworkWrapper for debug drawing.
+		// -----------------------------------------------------------------
+		virtual void ComputeEdges(float* x, float* y, int& numEdges) const = 0;
+
 	private:
 		// Move this if it was intended to be private to IShape
 		// static const int MAX_EDGES = 6; 
-
-		virtual void ComputeEdges(float* x, float* y, int& numEdges) const = 0;
 	};
 
 	// --- Concrete Shapes ---
@@ -50,6 +52,7 @@ namespace test
 	public:
 		TriShape(const float size); // DECLARATION ONLY
 		virtual float GetRadius() const override { return m_radius; }
+		// The override definitions below are fine as they were, they are defined in public.
 		virtual void ComputeEdges(float* x, float* y, int& numEdges) const override;
 		virtual int GetType() const override { return 0; }
 
