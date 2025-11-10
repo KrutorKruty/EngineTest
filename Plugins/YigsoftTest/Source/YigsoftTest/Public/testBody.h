@@ -22,10 +22,11 @@ namespace test
     class Body
     {
     public:
-        Body(IShape* shape, const unsigned int color, float x, float y);
-        ~Body() { delete m_shape; }
-
-        void Update(const std::vector< Body* >& otherBodies);
+        
+        
+        Body(IShape* shape, const unsigned int color, float x, float y, int shapeTypeID);
+        int GetShapeTypeID() const { return m_shapeTypeID; }
+        void Update(const std::vector< Body* >& otherBodies, int currentScenario);
         void Render(app::RenderFrame& frame);
         float GetRadius() const;
         void Integrate(float deltaTime);
@@ -41,7 +42,8 @@ namespace test
 
     private:
 
-        bool FindAttractor(const std::vector< Body* >& otherBodies, float& outDirX, float& outDirY) const;
+        int m_shapeTypeID;
+        bool FindAttractor(const std::vector< Body* >& otherBodies, int currentScenario, float& outDirX, float& outDirY) const;
         void SolveAttraction(float dirX, float dirY);
         void SolveCollision(const std::vector< Body* >& otherBodies);
         void WrapAround();

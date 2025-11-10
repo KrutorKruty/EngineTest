@@ -33,8 +33,15 @@ namespace test
 
 	void App::OnTick(const float timeDelta)
 	{
+		// FIX 1: Use the public GetScenario() method from the base class 
+		// to retrieve the scenario ID, resolving the C2248 access error.
+		const int currentScenario = GetScenario();
+
 		for (auto* body : m_bodies)
-			body->Update(m_bodies);
+		{
+			// FIX 2: Pass the currentScenario ID to Body::Update.
+			body->Update(m_bodies, currentScenario);
+		}
 
 		for (auto* body : m_bodies)
 			body->Integrate(timeDelta);
@@ -88,7 +95,6 @@ namespace test
 	void App::AddBody(int shapeType, float x, float y, float r)
 	{
 		IShape* shape = nullptr;
-
 		unsigned int color = 0;
 
 		switch (shapeType)
@@ -117,7 +123,9 @@ namespace test
 
 		if (shape)
 		{
-			m_bodies.push_back(new Body(shape, color, x, y));
+			// FIX 3: Pass the shapeType as the new shapeTypeID argument (shapeType)
+			// to the Body constructor, ensuring the FindAttractor logic works.
+			m_bodies.push_back(new Body(shape, color, x, y, shapeType));
 		}
 	}
 

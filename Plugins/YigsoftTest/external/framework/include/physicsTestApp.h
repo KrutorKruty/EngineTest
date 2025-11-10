@@ -21,7 +21,7 @@ namespace test
 		virtual void OnKeyPressed( const int keyCode ) override;
 		virtual void OnRender( app::RenderFrame& frame ) const override;
 		virtual void OnAppSwitched( app::IApp* prevApp ) override;
-
+        int GetScenario() const { return m_scenario; }
 		/// get number of bodies in the scene
 		virtual int GetNumBodies() const = 0;
 
