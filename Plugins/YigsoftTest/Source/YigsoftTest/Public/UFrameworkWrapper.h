@@ -1,3 +1,5 @@
+// UFrameworkWrapper.h
+
 #pragma once
 
 #include "Components/ActorComponent.h"
@@ -19,9 +21,8 @@ protected:
     test::App* FrameworkApp;
 
 public:
-    // NEW: Expose Color to the Editor
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation|Visuals")
-    FColor DebugDrawColor = FColor::White; // Default to White for visibility
+    // REMOVED: UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation|Visuals")
+    // REMOVED: FColor DebugDrawColor = FColor::White;
 
     // UFUNCTIONs... (existing code)
     UFUNCTION(BlueprintCallable, Category = "Framework Functions")

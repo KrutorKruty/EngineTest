@@ -70,7 +70,7 @@ namespace app
 	class WindowListener
 	{
 	public:
-		~WindowListener() {};
+		virtual ~WindowListener() {};
 
 		virtual void OnClose() = 0;
 		virtual void OnKeyPress( const int keyCode ) = 0;
