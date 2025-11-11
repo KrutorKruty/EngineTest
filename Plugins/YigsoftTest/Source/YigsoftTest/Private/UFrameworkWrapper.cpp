@@ -203,9 +203,9 @@ void UFrameworkWrapper::DrawUI(UCanvas* Canvas, APlayerController* PlayerControl
         // 2. Create the FCanvasTextItem
         FCanvasTextItem TextItem(
             FVector2D(StringInfo.x, StringInfo.y), // Screen position
-            FText::FromString(TextString),         // Text content
-            DefaultFont,                           // Font object
-            Color                                  // Text color
+            FText::FromString(TextString),       // Text content
+            DefaultFont,                         // Font object
+            Color                                // Text color
         );
 
         // Optional: Set scale (standard 1.0)

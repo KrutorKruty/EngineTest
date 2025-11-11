@@ -8,9 +8,12 @@
 #include <cmath>
 
 // Define the constants used throughout the physics system.
+// These definitions are required here to satisfy the linker (LNK2001).
+// If a C2374 redefinition error occurs after this, it indicates an error
+// in the external header file (physicsTestApp.h) which defines them incorrectly.
 const float test::Gravitation = 100.0f;
-const float test::BodySpeed = 100.0f;      // Setting a default speed constant
-const float test::AttractorRange = 150.0f; // Setting a default range constant
+const float test::BodySpeed = 100.0f;
+const float test::AttractorRange = 150.0f;
 
 namespace test
 {
@@ -81,14 +84,11 @@ namespace test
 			if (otherBody == this)
 				continue;
 
-			// --- CRITICAL FIX: Check attraction rule before calculating distance ---
-			// If same-shape attraction is required (Scenario 1 or 2) AND the shapes are different, skip this body entirely.
+			// If same-shape attraction is required (Scenario 1 or 2) AND the shapes are different, skip this body.
 			if (requiresSameShapeAttraction && (GetShapeTypeID() != otherBody->GetShapeTypeID()))
 			{
 				continue;
 			}
-			// If currentScenario is 0, this check is skipped, and all bodies attract.
-			// If in Scenarios 1 or 2, only same shapes pass this check.
 
 
 			float dx = otherBody->m_x - m_x;
@@ -129,7 +129,6 @@ namespace test
 			if (otherBody == this)
 				continue;
 
-			// *** FIX: Corrected TestOverlap coordinates. ***
 			if (IShape::TestOverlap(m_shape, m_x, m_y, otherBody->m_shape, otherBody->m_x, otherBody->m_y))
 			{
 				float dx = otherBody->m_x - m_x;
@@ -153,7 +152,7 @@ namespace test
 
 					float correctionMagnitude = penetration * CorrectionBias;
 
-
+					// Fixed declaration for correctionY to be float
 					float correctionX = correctionMagnitude * nx * 0.5f;
 					float correctionY = correctionMagnitude * ny * 0.5f;
 
