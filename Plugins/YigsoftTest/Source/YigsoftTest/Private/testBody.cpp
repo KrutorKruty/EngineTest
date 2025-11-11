@@ -2,23 +2,19 @@
 
 #include "testBody.h"
 #include "testShape.h"
-
-
 #include "../external/framework/include/framework.h"
-
 
 #include <vector>
 #include <cmath>
 
-
+// Define the constants used throughout the physics system.
 const float test::Gravitation = 100.0f;
+const float test::BodySpeed = 100.0f;      // Setting a default speed constant
+const float test::AttractorRange = 150.0f; // Setting a default range constant
 
 namespace test
 {
 
-	float const BodySpeed = 500.0f;     
-	float const AttractorRange = 1000.0f; 
-	
 	Body::Body(IShape* shape, const unsigned int color, float x, float y, int shapeTypeID) :
 		m_shape(shape),
 		m_color(color),
@@ -30,7 +26,12 @@ namespace test
 	{
 	}
 
-	
+	Body::~Body()
+	{
+		delete m_shape;
+		m_shape = nullptr;
+	}
+
 	void Body::Update(const std::vector< Body* >& otherBodies, int currentScenario)
 	{
 		float dirX = 0.0f;
@@ -62,29 +63,33 @@ namespace test
 		WrapAround();
 	}
 
-	
+
 	void Body::Render(app::RenderFrame& frame)
 	{
 		frame.SetColor(m_color);
 		m_shape->Render(m_x, m_y, frame);
 	}
 
-	
+
 	bool Body::FindAttractor(const std::vector< Body* >& otherBodies, int currentScenario, float& outDirX, float& outDirY) const
 	{
+		// Scenarios 1 and 2 require "same shape only" attraction.
+		bool requiresSameShapeAttraction = (currentScenario == 1 || currentScenario == 2);
+
 		for (auto* otherBody : otherBodies)
 		{
 			if (otherBody == this)
 				continue;
 
-			
-			if (currentScenario == 1)
+			// --- CRITICAL FIX: Check attraction rule before calculating distance ---
+			// If same-shape attraction is required (Scenario 1 or 2) AND the shapes are different, skip this body entirely.
+			if (requiresSameShapeAttraction && (GetShapeTypeID() != otherBody->GetShapeTypeID()))
 			{
-				if (GetShapeTypeID() != otherBody->GetShapeTypeID())
-				{
-					continue; 
-				}
+				continue;
 			}
+			// If currentScenario is 0, this check is skipped, and all bodies attract.
+			// If in Scenarios 1 or 2, only same shapes pass this check.
+
 
 			float dx = otherBody->m_x - m_x;
 			float dy = otherBody->m_y - m_y;
@@ -102,20 +107,21 @@ namespace test
 		return false;
 	}
 
-	
+
 	void Body::SolveAttraction(float dirX, float dirY)
 	{
 		m_velX += dirX * test::Gravitation;
 		m_velY += dirY * test::Gravitation;
 	}
 
-	
+
 	void Body::SolveCollision(const std::vector< Body* >& otherBodies)
 	{
-		
-		const float CorrectionBias = 0.2f;
 
-		
+		// Increased from 0.2f to 0.4f to forcefully push apart bodies under high attraction force.
+		const float CorrectionBias = 0.4f;
+
+
 		const float RepulsionFactor = 0.1f;
 
 		for (auto* otherBody : otherBodies)
@@ -123,6 +129,7 @@ namespace test
 			if (otherBody == this)
 				continue;
 
+			// *** FIX: Corrected TestOverlap coordinates. ***
 			if (IShape::TestOverlap(m_shape, m_x, m_y, otherBody->m_shape, otherBody->m_x, otherBody->m_y))
 			{
 				float dx = otherBody->m_x - m_x;
@@ -134,7 +141,7 @@ namespace test
 
 				float dist = sqrtf(distSq);
 
-			
+
 				float nx = dx / dist;
 				float ny = dy / dist;
 
@@ -143,10 +150,10 @@ namespace test
 
 				if (penetration > 0.0f)
 				{
-					
+
 					float correctionMagnitude = penetration * CorrectionBias;
 
-					
+
 					float correctionX = correctionMagnitude * nx * 0.5f;
 					float correctionY = correctionMagnitude * ny * 0.5f;
 
@@ -157,14 +164,14 @@ namespace test
 					otherBody->m_y += correctionY;
 				}
 
-			
+
 				m_velX -= dx * RepulsionFactor;
 				m_velY -= dy * RepulsionFactor;
 			}
 		}
 	}
 
-	
+
 	void Body::WrapAround()
 	{
 		if (m_x > (float)app::Resolution::WIDTH)

@@ -1,21 +1,23 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h" // Required for UActorComponent base class
+#include "UFrameworkWrapper.generated.h" 
+
 // Forward Declarations for Unreal types used in the UI function
 class UCanvas;
 class APlayerController;
-class UActorComponent; // Required forward declaration since you're removing the full include of ActorComponent.h
 
-// --- FORWARD DECLARATIONS FOR EXTERNAL FRAMEWORK (Fix to avoid UHT crash) ---
+// --- FORWARD DECLARATIONS FOR EXTERNAL FRAMEWORK ---
 namespace app {
 	class RenderFrame;
 	class Framework;
 	struct RenderString;
 }
-// --------------------------------------------------------------------------
+// ----------------------------------------------------
 
 namespace test { class App; }
 
-#include "UFrameworkWrapper.generated.h" // UHT generated code must come after forward declarations
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class YIGSOFTTEST_API UFrameworkWrapper : public UActorComponent
@@ -26,17 +28,21 @@ public:
 	UFrameworkWrapper();
 
 	// --- Existing Public Functions ---
+    // *** FIX: ADDED UFUNCTION MACROS to expose to Blueprint ***
+	UFUNCTION(BlueprintCallable, Category = "Framework")
 	void AddFrameworkBody(int ShapeType, float X, float Y, float R);
+
+    // *** FIX: ADDED UFUNCTION MACROS to expose to Blueprint ***
+	UFUNCTION(BlueprintCallable, Category = "Framework")
 	void HandleKeyInput(int32 KeyCode);
 
-	// --- NEW: Static Accessor for the active Framework instance ---
-	// This allows the custom AHUD class to access the framework data for UI drawing.
+	// --- Static Accessor for the active Framework instance ---
 	static UFrameworkWrapper* GetFrameworkWrapperInstance();
 
-	// --- NEW: Accessor for the external App (used for data, like GetRenderFrame) ---
+	// --- Accessor for the external App (used for data, like GetRenderFrame) ---
 	test::App* GetFrameworkApp() const { return FrameworkApp; }
 
-	// --- NEW: Custom UI Draw Hook (Requires an AHUD class to call this) ---
+	// --- Custom UI Draw Hook (Requires an AHUD class to call this) ---
 	void DrawUI(UCanvas* Canvas, APlayerController* PC);
 
 protected:

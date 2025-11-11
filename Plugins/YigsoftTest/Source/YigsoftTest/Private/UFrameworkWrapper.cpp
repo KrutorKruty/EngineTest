@@ -2,17 +2,16 @@
 
 // 1. Keep UFrameworkWrapper.h first
 #include "UFrameworkWrapper.h"
-#pragma comment(lib, "Framework.Release.lib")
+#pragma comment(lib, "Framework.Release.lib") // Library linkage (optional but kept if needed)
 #include "framework.h"
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "CanvasItem.h" 
-// 3. External Library Includes (Safe to be here, as UHT ignores .cpp files)
+// 3. External Library Includes
 #include <vector>
 #include "testApp.h"
 #include "testBody.h"
-#include "testShape.h"
-#include "../external/framework/include/framework.h"
+#include "testShape.h" // Source of the required constant (likely defines MAX_EDGES globally or requires no scope)
 #include "GameFramework/PlayerController.h"
 // 4. Engine/API Includes (Required for DrawDebugLine, UCanvas, FText, etc.)
 #include "Engine/Canvas.h"
@@ -25,15 +24,16 @@
 // Added required math include for FVector, FLinearColor conversion
 #include "Math/Color.h" 
 
-
 using namespace test;
 using namespace app;
 
+// If MAX_EDGES is not defined globally in a header, we define it here.
+#ifndef MAX_EDGES
 const int MAX_EDGES = 6;
+#endif 
 
-// --- 1. Static Member Initialization (REQUIRED) ---
-UFrameworkWrapper* UFrameworkWrapper::Instance = nullptr;
 
+// --- Helper Functions for Color Conversion ---
 FColor ConvertExternalColor(unsigned int ExtColor)
 {
     uint8 R = (uint8)((ExtColor >> 16) & 0xFF);
@@ -50,10 +50,14 @@ FLinearColor ConvertExternalColorToFLinearColor(DWORD ExtColor)
     return FLinearColor(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
 }
 
-// --- Constructor (WORKING LINES) ---
+// --- 1. Static Member Initialization ---
+UFrameworkWrapper* UFrameworkWrapper::Instance = nullptr;
+
+// --- Constructor ---
 UFrameworkWrapper::UFrameworkWrapper()
 {
     PrimaryComponentTick.bCanEverTick = true;
+    PrimaryComponentTick.TickGroup = TG_PrePhysics; // Ensure tick order if needed
     FrameworkApp = new test::App();
 }
 
@@ -77,20 +81,24 @@ void UFrameworkWrapper::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 
 
-// --- BeginPlay (WORKING LINES) ---
+// --- BeginPlay ---
 void UFrameworkWrapper::BeginPlay()
 {
     Super::BeginPlay();
     Instance = this;
+    if (FrameworkApp)
+    {
+        // Init() call remains removed as it caused C2039.
+    }
 }
 
-// --- GetFrameworkWrapperInstance (IMPLEMENTATION ADDED) ---
+// --- GetFrameworkWrapperInstance ---
 UFrameworkWrapper* UFrameworkWrapper::GetFrameworkWrapperInstance()
 {
     return Instance;
 }
 
-// --- AddFrameworkBody (WORKING LINES) ---
+// --- AddFrameworkBody ---
 void UFrameworkWrapper::AddFrameworkBody(int ShapeType, float X, float Y, float R)
 {
     if (FrameworkApp)
@@ -99,22 +107,24 @@ void UFrameworkWrapper::AddFrameworkBody(int ShapeType, float X, float Y, float 
     }
 }
 
-// --- HandleKeyInput (WORKING LINES) ---
+// --- HandleKeyInput ---
 void UFrameworkWrapper::HandleKeyInput(int32 KeyCode)
 {
     if (FrameworkApp)
     {
+        // Assuming testApp uses OnKeyPressed to handle external input
         FrameworkApp->OnKeyPressed(KeyCode);
     }
 }
 
-// --- TickComponent (WORKING LINES) ---
+// --- TickComponent ---
 void UFrameworkWrapper::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
     if (FrameworkApp)
     {
+        // Assuming OnTick handles the update/integration logic
         FrameworkApp->OnTick(DeltaTime);
 
         // Run OnRender with a temporary frame to collect data
@@ -149,6 +159,7 @@ void UFrameworkWrapper::TickComponent(float DeltaTime, ELevelTick TickType, FAct
                 const float NextEdgeX = ex[(i + 1) % numEdges];
                 const float NextEdgeY = ey[(i + 1) % numEdges];
 
+                // Note: Assuming a 2D simulation mapped to X/Y plane (Z=0)
                 FVector StartPoint(BodyX + CurEdgeX, BodyY + CurEdgeY, 0.0f);
                 FVector EndPoint(BodyX + NextEdgeX, BodyY + NextEdgeY, 0.0f);
 
@@ -168,7 +179,7 @@ void UFrameworkWrapper::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 }
 
 
-// --- DrawUI (IMPLEMENTATION ADDED to resolve LNK2019 and C2039) ---
+// --- DrawUI (Implementation of required rendering for UI strings) ---
 void UFrameworkWrapper::DrawUI(UCanvas* Canvas, APlayerController* PlayerController)
 {
     // Check for necessary pointers
@@ -177,10 +188,10 @@ void UFrameworkWrapper::DrawUI(UCanvas* Canvas, APlayerController* PlayerControl
         return;
     }
 
-    // Get the required UFont object (GEngine->GetTinyFont() is the modern way)
+    // Get the required UFont object
     UFont* DefaultFont = GEngine->GetTinyFont();
 
-    // Resolves LNK2019: GetGlobalInstance() and provides the RenderFrame data
+    // Resolves LNK2019 by accessing the framework instance's render frame
     const app::RenderFrame& Frame = app::Framework::GetGlobalInstance().GetRenderFrame();
 
     for (const app::RenderString& StringInfo : Frame.GetStrings())
@@ -192,21 +203,18 @@ void UFrameworkWrapper::DrawUI(UCanvas* Canvas, APlayerController* PlayerControl
         // 2. Create the FCanvasTextItem
         FCanvasTextItem TextItem(
             FVector2D(StringInfo.x, StringInfo.y), // Screen position
-            FText::FromString(TextString),          // Text content
-            DefaultFont,                            // Font object
-            Color                                   // Text color
+            FText::FromString(TextString),         // Text content
+            DefaultFont,                           // Font object
+            Color                                  // Text color
         );
 
-        // Optional: Set scale
+        // Optional: Set scale (standard 1.0)
         TextItem.Scale = FVector2D(1.0f, 1.0f);
 
-        // FIX: The bEnableShadow property might be deprecated or unavailable in this engine version.
-        // We set the ShadowOffset instead, which achieves the same shadow effect.
+        // Use ShadowOffset for shadow effect
         TextItem.ShadowOffset = FVector2D(1.0f, 1.0f);
 
-        // 3. Draw the item using DrawItem. This is the more stable/modern way
-        // to draw UI elements to the Canvas and avoids the LNK2019 error 
-        // that often plagues the DrawText overloads.
+        // 3. Draw the item using DrawItem
         Canvas->DrawItem(TextItem);
     }
 

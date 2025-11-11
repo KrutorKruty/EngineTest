@@ -19,6 +19,9 @@ namespace test
 
 		virtual float GetRadius() const = 0;
 
+		// CRITICAL FIX: The Body constructor requires this virtual function.
+		virtual float getMass() const = 0;
+
 		/// Render shape at given position
 		void Render(float x, float y, app::RenderFrame& frame) const; // DECLARATION ONLY
 
@@ -52,6 +55,8 @@ namespace test
 	public:
 		TriShape(const float size); // DECLARATION ONLY
 		virtual float GetRadius() const override { return m_radius; }
+		virtual float getMass() const override { return m_radius * m_radius; } // FIX: Required implementation
+
 		// The override definitions below are fine as they were, they are defined in public.
 		virtual void ComputeEdges(float* x, float* y, int& numEdges) const override;
 		virtual int GetType() const override { return 0; }
@@ -66,6 +71,8 @@ namespace test
 	public:
 		QuadShape(const float size); // DECLARATION ONLY
 		virtual float GetRadius() const override { return m_radius; }
+		virtual float getMass() const override { return m_radius * m_radius; } // FIX: Required implementation
+
 		virtual void ComputeEdges(float* x, float* y, int& numEdges) const override;
 		virtual int GetType() const override { return 1; }
 
@@ -79,6 +86,8 @@ namespace test
 	public:
 		HexShape(const float size); // DECLARATION ONLY
 		virtual float GetRadius() const override { return m_radius; }
+		virtual float getMass() const override { return m_radius * m_radius; } // FIX: Required implementation
+
 		virtual void ComputeEdges(float* x, float* y, int& numEdges) const override;
 		virtual int GetType() const override { return 2; }
 
