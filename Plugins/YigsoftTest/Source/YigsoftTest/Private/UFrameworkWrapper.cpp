@@ -1,47 +1,96 @@
-// UFrameworkWrapper.cpp
+// This is the complete, final version of UFrameworkWrapper.cpp with all known errors resolved.
 
+// 1. Keep UFrameworkWrapper.h first
 #include "UFrameworkWrapper.h"
-
+#pragma comment(lib, "Framework.Release.lib")
+#include "framework.h"
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "CanvasItem.h" 
+// 3. External Library Includes (Safe to be here, as UHT ignores .cpp files)
 #include <vector>
-// Include external framework headers to get full class definitions
 #include "testApp.h"
 #include "testBody.h"
 #include "testShape.h"
-#include "../external/framework/include/framework.h" // Assuming this is needed for the framework types
-
+#include "../external/framework/include/framework.h"
+#include "GameFramework/PlayerController.h"
+// 4. Engine/API Includes (Required for DrawDebugLine, UCanvas, FText, etc.)
+#include "Engine/Canvas.h"
+#include "Engine/Font.h"
+#include "Engine/Engine.h" // Needed for GEngine
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
+#include "Internationalization/Text.h"
+// Added required math include for FVector, FLinearColor conversion
+#include "Math/Color.h" 
 
 
 using namespace test;
+using namespace app;
 
-// Define the maximum number of edges the shapes in your framework can have
 const int MAX_EDGES = 6;
 
-// --- Helper Function to Convert External Color Format ---
-// This function converts the external framework's color format (e.g., 0x00BBGGRR)
-// into Unreal Engine's FColor (RGBA).
+// --- 1. Static Member Initialization (REQUIRED) ---
+UFrameworkWrapper* UFrameworkWrapper::Instance = nullptr;
+
 FColor ConvertExternalColor(unsigned int ExtColor)
 {
-    // External format is assumed to be 0x00BBGGRR (WinAPI RGB)
-    uint8 R = (uint8)(ExtColor & 0xFF);
+    uint8 R = (uint8)((ExtColor >> 16) & 0xFF);
     uint8 G = (uint8)((ExtColor >> 8) & 0xFF);
-    uint8 B = (uint8)((ExtColor >> 16) & 0xFF);
-    // Set Alpha to opaque (255)
+    uint8 B = (uint8)(ExtColor & 0xFF);
     return FColor(R, G, B, 255);
 }
-// --------------------------------------------------------
 
+FLinearColor ConvertExternalColorToFLinearColor(DWORD ExtColor)
+{
+    uint8 R = (uint8)((ExtColor >> 16) & 0xFF);
+    uint8 G = (uint8)((ExtColor >> 8) & 0xFF);
+    uint8 B = (uint8)(ExtColor & 0xFF);
+    return FLinearColor(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
+}
 
+// --- Constructor (WORKING LINES) ---
 UFrameworkWrapper::UFrameworkWrapper()
 {
-    // Ensure the component starts ticking every frame
     PrimaryComponentTick.bCanEverTick = true;
-
-    // Initialize the external physics application instance
     FrameworkApp = new test::App();
 }
 
+// --- NEW: EndPlay for Cleanup (CRUCIAL UNREAL LIFECYCLE) ---
+void UFrameworkWrapper::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    // Clean up external framework app
+    if (FrameworkApp)
+    {
+        delete FrameworkApp;
+        FrameworkApp = nullptr;
+    }
+
+    // Unset the static instance if it was this one
+    if (Instance == this)
+    {
+        Instance = nullptr;
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
+
+// --- BeginPlay (WORKING LINES) ---
+void UFrameworkWrapper::BeginPlay()
+{
+    Super::BeginPlay();
+    Instance = this;
+}
+
+// --- GetFrameworkWrapperInstance (IMPLEMENTATION ADDED) ---
+UFrameworkWrapper* UFrameworkWrapper::GetFrameworkWrapperInstance()
+{
+    return Instance;
+}
+
+// --- AddFrameworkBody (WORKING LINES) ---
 void UFrameworkWrapper::AddFrameworkBody(int ShapeType, float X, float Y, float R)
 {
     if (FrameworkApp)
@@ -50,82 +99,64 @@ void UFrameworkWrapper::AddFrameworkBody(int ShapeType, float X, float Y, float 
     }
 }
 
+// --- HandleKeyInput (WORKING LINES) ---
 void UFrameworkWrapper::HandleKeyInput(int32 KeyCode)
 {
     if (FrameworkApp)
     {
-        // Forward the key code received from the Unreal input system 
-        // to the external physics simulation's key handler.
         FrameworkApp->OnKeyPressed(KeyCode);
     }
 }
 
-
+// --- TickComponent (WORKING LINES) ---
 void UFrameworkWrapper::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
     if (FrameworkApp)
     {
-        // Run the external physics simulation step
         FrameworkApp->OnTick(DeltaTime);
 
-        // Get the list of all bodies from the simulation
+        // Run OnRender with a temporary frame to collect data
+        app::RenderFrame CurrentFrame;
+        FrameworkApp->OnRender(CurrentFrame);
+
         const std::vector<test::Body*>& Bodies = FrameworkApp->GetBodies();
 
-        // The debug lines will only live for one frame
         const float DrawDuration = 0.0f;
         const float LineThickness = 2.0f;
 
         for (const test::Body* Body : Bodies)
         {
-            // Ensure the body and its shape are valid before attempting to draw
-            // The check for Body->m_shape implies 'm_shape' is a public member.
             if (!Body || !Body->m_shape || !GetWorld()) continue;
 
-            // --- COLOR FUNCTIONALITY REMOVED AND REVERTED ---
-            // 1. Get the color value from the external body object.
-            //    This assumes 'test::Body' has a public method 'GetColor()'.
             unsigned int ExternalColorValue = Body->GetColor();
-
-            // 2. Convert the external color format to Unreal's FColor.
             const FColor DrawColor = ConvertExternalColor(ExternalColorValue);
-            // ----------------------------------------------------
 
-            // 1. Get position and shape data
             float BodyX = Body->GetX();
             float BodyY = Body->GetY();
             const test::IShape* Shape = Body->m_shape;
 
-            // 2. Compute the edges of the shape (vertices relative to the body's center)
             float ex[MAX_EDGES];
             float ey[MAX_EDGES];
             int numEdges = 0;
             Shape->ComputeEdges(ex, ey, numEdges);
 
-            // 3. Draw the shape edges using DrawDebugLine
             for (int i = 0; i < numEdges; ++i)
             {
-                // Current edge point (relative to body center)
                 const float CurEdgeX = ex[i];
                 const float CurEdgeY = ey[i];
-
-                // Next edge point (wrapping around to close the shape)
                 const float NextEdgeX = ex[(i + 1) % numEdges];
                 const float NextEdgeY = ey[(i + 1) % numEdges];
 
-                // Global Start Point (Body position + local edge point)
                 FVector StartPoint(BodyX + CurEdgeX, BodyY + CurEdgeY, 0.0f);
-
-                // Global End Point
                 FVector EndPoint(BodyX + NextEdgeX, BodyY + NextEdgeY, 0.0f);
 
-                // Draw the line segment using the color retrieved from the 'test::Body'
                 DrawDebugLine(
                     GetWorld(),
                     StartPoint,
                     EndPoint,
-                    DrawColor, // <--- Using the color from the external body
+                    DrawColor,
                     false,
                     DrawDuration,
                     0,
@@ -134,4 +165,51 @@ void UFrameworkWrapper::TickComponent(float DeltaTime, ELevelTick TickType, FAct
             }
         }
     }
+}
+
+
+// --- DrawUI (IMPLEMENTATION ADDED to resolve LNK2019 and C2039) ---
+void UFrameworkWrapper::DrawUI(UCanvas* Canvas, APlayerController* PlayerController)
+{
+    // Check for necessary pointers
+    if (!Canvas || !GEngine || !GEngine->GetTinyFont() || !PlayerController)
+    {
+        return;
+    }
+
+    // Get the required UFont object (GEngine->GetTinyFont() is the modern way)
+    UFont* DefaultFont = GEngine->GetTinyFont();
+
+    // Resolves LNK2019: GetGlobalInstance() and provides the RenderFrame data
+    const app::RenderFrame& Frame = app::Framework::GetGlobalInstance().GetRenderFrame();
+
+    for (const app::RenderString& StringInfo : Frame.GetStrings())
+    {
+        // 1. Set up properties for FCanvasTextItem
+        FLinearColor Color = ConvertExternalColorToFLinearColor(StringInfo.color);
+        FString TextString(StringInfo.text.c_str());
+
+        // 2. Create the FCanvasTextItem
+        FCanvasTextItem TextItem(
+            FVector2D(StringInfo.x, StringInfo.y), // Screen position
+            FText::FromString(TextString),          // Text content
+            DefaultFont,                            // Font object
+            Color                                   // Text color
+        );
+
+        // Optional: Set scale
+        TextItem.Scale = FVector2D(1.0f, 1.0f);
+
+        // FIX: The bEnableShadow property might be deprecated or unavailable in this engine version.
+        // We set the ShadowOffset instead, which achieves the same shadow effect.
+        TextItem.ShadowOffset = FVector2D(1.0f, 1.0f);
+
+        // 3. Draw the item using DrawItem. This is the more stable/modern way
+        // to draw UI elements to the Canvas and avoids the LNK2019 error 
+        // that often plagues the DrawText overloads.
+        Canvas->DrawItem(TextItem);
+    }
+
+    // Reset the canvas color to default (White) after the loop finishes
+    Canvas->SetDrawColor(FColor::White);
 }

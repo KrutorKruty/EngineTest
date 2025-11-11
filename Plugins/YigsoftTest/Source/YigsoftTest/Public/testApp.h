@@ -3,6 +3,7 @@
 #include "../external/framework/include/app.h"
 #include "../external/framework/include/physicsTestApp.h"
 #include <vector> 
+#include "framework.h"
 
 namespace test
 {

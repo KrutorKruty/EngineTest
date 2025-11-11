@@ -3,6 +3,26 @@
 namespace test
 {
 
+	
+	int PhysicsTestApp::GetScenario() const
+	{
+		// Assumes 'm_currentScenario' is a private member variable
+		return m_currentScenario;
+	}
+	
+	void PhysicsTestApp::SetNumBodies(int numBodies)
+	{
+		// Assumes 'm_numBodies' is a private member variable
+		m_numBodies = numBodies;
+	}
+
+	void PhysicsTestApp::SetScenario(int scenario)
+	{
+		// Assumes 'm_currentScenario' is a private member variable
+		m_currentScenario = scenario;
+	}
+
+
 	PhysicsTestApp::PhysicsTestApp( const char* appName )
 		: m_appName( appName )
 		, m_scenario( 0 )

@@ -1,6 +1,10 @@
+
+
 #include "testApp.h"
+#include "app.h"
 #include "testShape.h"
 #include "testBody.h"
+#include "physicsTestApp.h"
 #include "../external/framework/include/physicsTestApp.h"
 
 namespace test
@@ -33,13 +37,20 @@ namespace test
 
 	void App::OnTick(const float timeDelta)
 	{
-		// FIX 1: Use the public GetScenario() method from the base class 
-		// to retrieve the scenario ID, resolving the C2248 access error.
-		const int currentScenario = GetScenario();
+		
+		const int currentScenario = test::PhysicsTestApp::GetScenario();
+
+	
+		test::PhysicsTestApp::SetNumBodies(GetNumBodies());
+
+		
+		test::PhysicsTestApp::SetScenario(currentScenario);
+
+	
 
 		for (auto* body : m_bodies)
 		{
-			// FIX 2: Pass the currentScenario ID to Body::Update.
+			
 			body->Update(m_bodies, currentScenario);
 		}
 
@@ -77,6 +88,7 @@ namespace test
 
 	void App::OnRender(app::RenderFrame& frame) const
 	{
+		// This base call handles rendering the debug overlay text (now updated in OnTick)
 		PhysicsTestApp::OnRender(frame);
 
 		for (auto* body : m_bodies)
@@ -123,8 +135,7 @@ namespace test
 
 		if (shape)
 		{
-			// FIX 3: Pass the shapeType as the new shapeTypeID argument (shapeType)
-			// to the Body constructor, ensuring the FindAttractor logic works.
+			// Pass the shapeType as the new shapeTypeID argument to the Body constructor
 			m_bodies.push_back(new Body(shape, color, x, y, shapeType));
 		}
 	}

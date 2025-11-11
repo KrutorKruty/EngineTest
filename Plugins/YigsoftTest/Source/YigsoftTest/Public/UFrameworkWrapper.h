@@ -1,36 +1,56 @@
-// UFrameworkWrapper.h
-
 #pragma once
 
-#include "Components/ActorComponent.h"
-#include "UFrameworkWrapper.generated.h"
+// Forward Declarations for Unreal types used in the UI function
+class UCanvas;
+class APlayerController;
+class UActorComponent; // Required forward declaration since you're removing the full include of ActorComponent.h
 
-// Forward declare your test::App to use it in the class
+// --- FORWARD DECLARATIONS FOR EXTERNAL FRAMEWORK (Fix to avoid UHT crash) ---
+namespace app {
+	class RenderFrame;
+	class Framework;
+	struct RenderString;
+}
+// --------------------------------------------------------------------------
+
 namespace test { class App; }
 
-UCLASS(ClassGroup = (YigsoftTest), meta = (BlueprintSpawnableComponent))
+#include "UFrameworkWrapper.generated.h" // UHT generated code must come after forward declarations
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class YIGSOFTTEST_API UFrameworkWrapper : public UActorComponent
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    UFrameworkWrapper();
+	UFrameworkWrapper();
+
+	// --- Existing Public Functions ---
+	void AddFrameworkBody(int ShapeType, float X, float Y, float R);
+	void HandleKeyInput(int32 KeyCode);
+
+	// --- NEW: Static Accessor for the active Framework instance ---
+	// This allows the custom AHUD class to access the framework data for UI drawing.
+	static UFrameworkWrapper* GetFrameworkWrapperInstance();
+
+	// --- NEW: Accessor for the external App (used for data, like GetRenderFrame) ---
+	test::App* GetFrameworkApp() const { return FrameworkApp; }
+
+	// --- NEW: Custom UI Draw Hook (Requires an AHUD class to call this) ---
+	void DrawUI(UCanvas* Canvas, APlayerController* PC);
 
 protected:
-    // Ptr to your external framework's application logic
-    test::App* FrameworkApp;
+	virtual void BeginPlay() override;
+
+	// --- IMPLEMENTATION ADDED: RESOLVES C2509 ERROR ---
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
-    // REMOVED: UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Simulation|Visuals")
-    // REMOVED: FColor DebugDrawColor = FColor::White;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisFunction) override;
 
-    // UFUNCTIONs... (existing code)
-    UFUNCTION(BlueprintCallable, Category = "Framework Functions")
-    void AddFrameworkBody(int ShapeType, float X, float Y, float R);
+private:
+	test::App* FrameworkApp;
 
-    UFUNCTION(BlueprintCallable, Category = "Framework Functions")
-    void HandleKeyInput(int32 KeyCode);
-
-    // Call OnTick from Unreal's Tick function
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	// --- NEW: Static Instance Pointer ---
+	static UFrameworkWrapper* Instance;
 };

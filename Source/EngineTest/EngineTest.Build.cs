@@ -1,23 +1,25 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-using UnrealBuildTool;
+using UnrealBuildTool; 
+using System.IO;
 
 public class EngineTest : ModuleRules
 {
-	public EngineTest(ReadOnlyTargetRules Target) : base(Target)
-	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+    public EngineTest(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        // CRUCIAL: Add the plugin's Public directory to the search paths
+        // This is necessary when the main game module relies on a plugin's code
+        PublicIncludePaths.AddRange(new string[]
+        {
+            Path.Combine(ModuleDirectory, "..", "..", "Plugins", "YigsoftTest", "Source", "YigsoftTest", "Public")
+        });
 
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+        // Ensure YigsoftTest is in the dependencies (you verified this state previously)
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "YigsoftTest" 
+        });
 
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
-	}
+        // ... rest of the file ...
+    }
 }

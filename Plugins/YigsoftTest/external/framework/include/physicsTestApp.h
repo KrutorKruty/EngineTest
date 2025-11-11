@@ -16,12 +16,14 @@ namespace test
 	{
 	public:
 		PhysicsTestApp( const char* appName );
-
+		
+		int GetScenario() const;
 		virtual bool OnInit( const app::AppInitContext& initContext ) override;
 		virtual void OnKeyPressed( const int keyCode ) override;
 		virtual void OnRender( app::RenderFrame& frame ) const override;
 		virtual void OnAppSwitched( app::IApp* prevApp ) override;
-        int GetScenario() const { return m_scenario; }
+		void SetNumBodies(int numBodies);
+		void SetScenario(int scenario);
 		/// get number of bodies in the scene
 		virtual int GetNumBodies() const = 0;
 
@@ -35,9 +37,10 @@ namespace test
 		void AddBodies( int numBodies );
 		void ChangeScenario( int newScenario );
 
-		const char*		m_appName;
+		const char*		 m_appName;
 		int				m_scenario;
-
+		int      m_currentScenario;
+		int            m_numBodies;
 		static const int NUM_SCENARIOS = 2;
 	};
 

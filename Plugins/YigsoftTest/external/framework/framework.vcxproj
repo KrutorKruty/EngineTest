@@ -11,24 +11,52 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\fontData.inl" />
+    <None Include="src\fontData.inl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\framework.cpp" />
-    <ClCompile Include="src\physicsTestApp.cpp" />
-    <ClCompile Include="src\renderer.cpp" />
-    <ClCompile Include="src\renderFont.cpp" />
-    <ClCompile Include="src\renderLines.cpp" />
-    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\framework.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\physicsTestApp.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\renderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\renderFont.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\renderLines.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\utils.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\app.h" />
-    <ClInclude Include="include\framework.h" />
-    <ClInclude Include="include\physicsTestApp.h" />
-    <ClInclude Include="include\renderer.h" />
-    <ClInclude Include="include\renderFont.h" />
-    <ClInclude Include="include\renderLines.h" />
-    <ClInclude Include="include\utils.h" />
+    <ClInclude Include="include\app.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="include\framework.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="include\physicsTestApp.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="include\renderer.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="include\renderFont.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="include\renderLines.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="include\utils.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BB7767C8-8B68-43B7-B707-60E9B2B61894}</ProjectGuid>
@@ -61,14 +89,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>..\..\Lib</OutDir>
     <IntDir>$(SolutionDir)..\temp\$(ProjectName).$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName).$(Configuration)</TargetName>
+    <TargetName>Framework.Debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
     <IntDir>$(SolutionDir)..\temp\$(ProjectName).$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName).$(Configuration)</TargetName>
+    <TargetName>Framework.Release</TargetName>
+    <OutDir>$(OutDir)$(TargetName)$(TargetExt)</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -79,13 +107,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.\include</AdditionalIncludeDirectories>
       <ProgramDataBaseFileName>$(SolutionDir)..\lib\$(ProjectName).$(Configuration).pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <OutputFile>$(SolutionDir)..\lib\$(ProjectName).$(Configuration).lib</OutputFile>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>

@@ -12,12 +12,14 @@
 #include <atomic>
 #include <memory>
 
-#define FRAMEWORK_SAFE_RELEASE(x) if (x) { (x)->Release(); x = NULL; }
+#ifndef SAFE_RELEASE
+#define SAFE_RELEASE(x) if (x) { (x)->Release(); x = NULL; }
+#endif
 
 namespace app
 {
 	class RenderFont;
-
+	class Framework;
 	enum class Resolution : int
 	{
 		WIDTH = 1600,
@@ -33,8 +35,8 @@ namespace app
 		Timer();
 
 		TTicks GetNow();
-		double ToSeconds( TTicks time );
-		double ToSecondsIntv( TTicks time );
+		double ToSeconds(TTicks time);
+		double ToSecondsIntv(TTicks time);
 
 		static inline Timer& GetInstance()
 		{
@@ -53,13 +55,14 @@ namespace app
 	{
 	public:
 		inline ScopedTimer()
-			: m_startTime( Timer::GetInstance().GetNow() )
-		{}
+			: m_startTime(Timer::GetInstance().GetNow())
+		{
+		}
 
 		inline double GetElaspedTime() const
 		{
 			const auto delta = (Timer::GetInstance().GetNow() - m_startTime);
-			return Timer::GetInstance().ToSecondsIntv( delta );
+			return Timer::GetInstance().ToSecondsIntv(delta);
 		}
 
 	private:
@@ -73,7 +76,7 @@ namespace app
 		virtual ~WindowListener() {};
 
 		virtual void OnClose() = 0;
-		virtual void OnKeyPress( const int keyCode ) = 0;
+		virtual void OnKeyPress(const int keyCode) = 0;
 	};
 
 	typedef std::unique_ptr<WindowListener> WindowListenerPtr;
@@ -87,7 +90,7 @@ namespace app
 
 		inline HWND GetHandle() const { return m_hwnd; }
 
-		void SetListener( WindowListenerPtr listener );
+		void SetListener(WindowListenerPtr listener);
 
 	private:
 		void RegisterWndClass();
@@ -99,7 +102,7 @@ namespace app
 
 		static bool			st_classRegistered;
 
-		static const wchar_t*	st_className;
+		static const wchar_t* st_className;
 
 		WindowListenerPtr		m_listener;
 		HWND					m_hwnd;
@@ -111,21 +114,21 @@ namespace app
 		DWORD					m_width;
 		DWORD					m_height;
 
-		ID3D11Device*			m_device;
-		ID3D11DeviceContext*	m_deviceContext;
+		ID3D11Device* m_device;
+		ID3D11DeviceContext* m_deviceContext;
 	};
 
 	/// renderable vertex
 	struct RenderVertex
 	{
-		float x,y;
+		float x, y;
 		DWORD color;
 	};
 
 	/// renderable string
 	struct RenderString
 	{
-		int x,y;
+		int x, y;
 		DWORD color;
 		std::string text;
 	};
@@ -137,15 +140,15 @@ namespace app
 		RenderFrame();
 
 		void Reset();
-
-		inline void SetColor( const DWORD color )
+		const std::vector< RenderString >& GetStrings() const { return m_strings; }
+		inline void SetColor(const DWORD color)
 		{
 			m_currentColor = color;
 		}
 
-		inline void AddLine( const float x0, const float y0, const float x1, const float y1 )
+		inline void AddLine(const float x0, const float y0, const float x1, const float y1)
 		{
-			if ( m_writePtr < m_endPtr )
+			if (m_writePtr < m_endPtr)
 			{
 				m_writePtr->color = m_currentColor;
 				m_writePtr->x = x0;
@@ -159,22 +162,24 @@ namespace app
 			}
 		}
 
-		void AddString( const int x, const int y, const DWORD color, const char* txt, ... );
+		void AddString(const int x, const int y, const DWORD color, const char* txt, ...);
 
 		friend class Renderer;
 
 	private:
+		
+		
 		static const int MAX_VERTICES = 8 * 100000; // good for around 100k of objects
 
 		DWORD			m_currentColor;
 
-		RenderVertex	m_vertices[ MAX_VERTICES ];
-		RenderVertex*	m_writePtr;
-		RenderVertex*	m_endPtr;
-
+		RenderVertex	m_vertices[MAX_VERTICES];
+		RenderVertex* m_writePtr;
+		RenderVertex* m_endPtr;
+		
 		inline int GetNumVertices() const
 		{
-			return (int)( m_writePtr - m_vertices);
+			return (int)(m_writePtr - m_vertices);
 		}
 
 		std::vector< RenderString >	m_strings;
@@ -183,6 +188,8 @@ namespace app
 	class Renderer;
 	class IApp;
 
+	
+	
 	/// framework interface
 	class Framework
 	{
@@ -190,28 +197,39 @@ namespace app
 		Framework();
 		~Framework();
 
-		void RegisterApp( IApp* app );
+		// CRITICAL FIX 1: Add the public static accessor declaration
+		static Framework& GetGlobalInstance();
+
+		// CRITICAL FIX 2: Add GetRenderFrame() declaration needed by the wrapper
+		const RenderFrame& GetRenderFrame() const;
+
+		void RegisterApp(IApp* app);
 
 		bool Init();
 		void Loop();
 
-		void BufferInput( const int pressedKey );
+		void BufferInput(const int pressedKey);
 		void RequestExit();
 
 	private:
-		void Tick( const float timeDelta );
-		void Render();
+		
+		static Framework* st_globalFrameworkInstance;
 
+		void Tick(const float timeDelta);
+		void Render();
+		
 		void ResetAverages();
 		void ProcessAverage();
 
 		void ProcessInput();
-		void ProcessInputKey( const int pressedKey );
+		void ProcessInputKey(const int pressedKey);
 
 		void ConnectWindowHook();
 		void PumpMessages();
 
-		void RenderStats( RenderFrame& frame );
+		void RenderStats(RenderFrame& frame);
+
+
 
 		std::atomic<bool>		m_done;
 
@@ -228,9 +246,9 @@ namespace app
 		double			m_avgAppRenderTime;
 		int				m_numAvgFrames;
 
-		Window*			m_window;
-		Renderer*		m_renderer;
-		RenderFrame*	m_frame;
+		Window* m_window;
+		Renderer* m_renderer;
+		RenderFrame* m_frame;
 
 		std::mutex			m_inputBufferLock;
 		std::vector< int >	m_inputBuffer;
